@@ -1,0 +1,195 @@
+h2. xxxx 
+
+* Live demo is available at "http://demo.neeraj.name/admin_data":http://demo.neeraj.name/admin_data
+
+endprologue.
+
+h3. What is admin_data?
+
+admin_data is a Rails plugin which allows admin of a site to easily browse, search and manage data using browser. Here is list of features of this plugin.
+
+h4. Source Code
+
+Source code is available at "http://github.com/neerajdotname/admin_data":http://github.com/neerajdotname/admin_data .
+
+h4. Live Demo
+
+Live demo of the application is available at "http://demo.neeraj.name/admin_data":http://demo.neeraj.name/admin_data . While viewing the demo you are not logged in as admin and hence you will not be able to edit, delete, destroy or create any new record.
+
+h4. Bug Reporting
+
+Please report all bugs at "http://github.com/neerajdotname/admin_data/issues":http://github.com/neerajdotname/admin_data/issues .
+
+h4. Rails version supported
+
+This plugin supports rails 2.3.5 and higher. Some people have posted that it works with lower versions of rails but I have not tested that.
+
+h4. Is it Rails3 compatible ?
+
+Not yet. But that should change by the middle of July 2010.
+
+h4. Database that are supported
+
+I have tested this plugin with MySQL, PostgreSQL and Oracle.
+
+h4. Requirement
+
++admin_data+ depends on +will_paginate+ gem.
+
+
+h3. Features
+
+h4. Non Intrusive
+
+All the features provided by admin_data are totally non intrusive. No change is required anywhere in your application. No named_scope is created and hence no lingering named_scope in your application. Nothing is stored in session or in cookies.
+
+Configuration options should be passed to admin_data by creating a file under initializers directory. The file should look something like <tt>~/config/initializers/admin_data_settings.rb</tt> .
+
+
+h3. Installing 
+
+Installing the plugin is easy.
+
+<ruby>
+ruby script/plugin 
+   install git://github.com/neerajdotname/admin_data.git
+</ruby>
+
+After installing the plugin start your server and visit +http://localhost:3000/admin_data+ .
+
+h3. Configuring the plugin
+
++admin_data+ allows you to configure certain features. Create a file under +config/initializers+ like this +config/initializers/admin_data_settings.rb+ . This is the file were all the configure settings will be stored.
+
+h4. Number of records per page
+
+By default +admin_data+ leaves it upto +will_paginate+ to decided how many records should be shown in a page. You can control how many records should be shown on a page.
+
+<ruby>
+# ~/confing/initializers/admin_data_settings.rb
+AdminData::Config.set = {
+  :will_paginate_per_page => 50
+}
+</ruby>
+
+h4. local jquery file instead of google hosted version
+
++admin_data+ uses jQuery . Don't worry using +admin_data+ will have no impact on rest of your application if you are using some other JavaScript library. +admin_data+ used google hosted version to load jQuery files. However if you do not have internet connection if you don't want to use google version then you can use the local jQuery files supplied with plugin.
+
+<ruby>
+AdminData::Config.set = {
+  :use_google_hosted_version => false
+}
+</ruby>
+
+h4. Ignore column limit
+
+"Ilya":http://www.igvita.com/ brought to my attention this "rails ticket":https://rails.lighthouseapp.com/projects/8994/tickets/876 . If the input field for a column is shorter than it should be then most likely you have run into this problem. One way to get around to this problem is to configure admin_data to not to use column.limit . In this way all text fields will have width of 60 . You can configure like this
+
+<ruby>
+AdminData::Config.set = {
+  :ignore_column_limit => true
+}
+</ruby>
+
+h4. Override the default find condition
+
+I have a model called +City+ which is defined like this.
+
+<ruby>
+class City < ActiveRecord::Base
+  def to_param
+    self.permanent_name
+  end
+end
+</ruby>
+
+This plugin will generate show method for city like this +/admin_data/city/miami+ . The controller will execute the query assuming that id is +miami+ and the record will not be found.
+
+Here is how that can be fixed.
+
+<ruby>
+AdminData::Config.set = {
+ :find_conditions => {'City' => lambda {|params| {:conditions => ["permanent_name = ?", params[:id]]}}}  
+}
+</ruby>
+
+h4. Override the default behaviour of column
+
+I have a model like this
+
+<ruby>
+class Car < ActiveRecord::Base
+  serialize :data
+end
+</ruby>
+
+I am going to create a record and set a value to data.
+
+<ruby>
+Car.create(:color => ‘black’, :year => ‘2000’)
+</ruby>
+
+If you look at this record using admin_data then for the column ‘data’ you will see value like this.
+
+<ruby>
+colorblackyear2000
+</ruby>
+
+This is not very useful. However I know that I am getting that value because that is output of to_s operation on a hash. If I could ask plugin to perform to_inspect method on a hash then output will be much more easy to read. Given below is how I can ask plugin to perform inspect method on data column.
+
+<ruby>
+AdminData::Config.set = ({
+  :column_settings => { 'Car' => { :data => lambda{|model| model.send(:data).inspect}}}
+})
+</ruby>
+
+The plugin passes the whole model record to the proc and the users can customize the value for that model as per their taste.
+
+Based on this setting the new output would be much more readable.
+
+h4. Replace drop down associations with input text
+
+Let's say that I have two tables: users table and phone_numbers. If I edit a phone number then I would be presented with the drop down of all the user ids. If I have 50K user records then page will be slow .
+
+To get around to this type of problem you can configure admin_data such that in stead of drop down select field , you will get input text field. This is how you can configre
+
+<ruby>
+AdminData::Config.set = ({
+ :drop_down_for_associations => false
+})
+</ruby>
+
+h4. RSS feed for all models
+
+This plugin provides RSS feed for all models. RSS feed can only be consumed if you are properly authenticated. This plugin uses http basic authentication mechanism to authenticate requests for RSS feed. Given below is how you can provider userid and password against to check for authentcation.
+
+<ruby>
+AdminData::Config.set = {
+  :feed_authentication_user_id => 'admin_data',
+  :feed_authentication_password => 'welcome'
+end
+</ruby> 
+
+The url to access RSS feed for model +user+ would be +http://localhost:3000/admin_data/feed/user+ . In this link substitute +user+ with the model you want to track.
+
+h4. Custom order of columns in listing
+
+This plugin allows you to customize order of columns in a listing. I have an Article model which ,by default, lists columns in following order: id, body, title, author_name, published_at .
+
+If I want order of columns to be changed then I need to pass only following configuration option.
+
+<ruby>
+AdminData::Config.set = {
+  :columns_order => {'Article' => [:id, :title, :body, :published_at, :author_name]}  
+}
+</ruby>
+
+
+h3. How to run test for this plugin
+
+This plugin has over 200 tests. To run those tests just go to the root of the plugin directory and type +rake+ .
+
+h3. Author and Contributors
+
+This plugin is written by "Neeraj Singh":http://github.com/neerajdotname . I am on twitter as "neerajdotname":http://twitter.com/neerajdotname. I am grateful to "other authors":http://github.com/neerajdotname/admin_data/contributors who have contributed to this plugin. 

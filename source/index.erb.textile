@@ -1,0 +1,5 @@
+<% content_for :index_section do %>
+h2.  <% guide('admin_data guide', 'getting_started.html') do %> <% end %>       
+</dl>    
+<% end %>
+
