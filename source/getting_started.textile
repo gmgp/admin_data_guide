@@ -1,4 +1,4 @@
-h2. xxxx 
+h2. 
 
 * Live demo is available at "http://demo.neeraj.name/admin_data":http://demo.neeraj.name/admin_data
 
@@ -6,7 +6,7 @@ endprologue.
 
 h3. What is admin_data?
 
-admin_data is a Rails plugin which allows admin of a site to easily browse, search and manage data using browser. Here is list of features of this plugin.
++admin_data+ is a Rails plugin which allows to easily browse, search and manage data using browser. 
 
 h4. Source Code
 
@@ -34,17 +34,35 @@ I have tested this plugin with MySQL, PostgreSQL and Oracle.
 
 h4. Requirement
 
-+admin_data+ depends on +will_paginate+ gem.
+* Rails 2.3.5+
+* will_paginate gem
 
 
 h3. Features
 
 h4. Non Intrusive
 
-All the features provided by admin_data are totally non intrusive. No change is required anywhere in your application. No named_scope is created and hence no lingering named_scope in your application. Nothing is stored in session or in cookies.
+All the features provided by +admin_data+ are totally non intrusive. No change is required anywhere in your application. No named_scope is created and hence no lingering named_scope in your application. Nothing is stored in session or in cookies. No file is put in your +public+ folder or anywhere else. No table is created. No migration to run. It is totally non intrusive.
 
-Configuration options should be passed to admin_data by creating a file under initializers directory. The file should look something like <tt>~/config/initializers/admin_data_settings.rb</tt> .
+h4. Browsing and Searching
 
+* Browse all records with pagination .
+* Quick search across all records in a table. Quick searche goes through all columns that are either +string+ or +text+ type.
+* Advance search for each field of each of the tables. Different options appear for diffent data types. "Click here":http://demo.neeraj.name/admin_data/advance_search/user to see advance search in action. Do try selecting different data types to see different options.
+* For both quick search and advance search, result can be sorted in ascending or in descending order of any column.
+* Browse "migration records":http://demo.neeraj.name/admin_data/migration from schema_migrations table even though there is no corresponding model for this table.
+
+h4. Association Information
+
+* For each individual record a snapshot of all associated records is shown. "Click here":http://demo.neeraj.name/admin_data/klass/user/501-stefanie-blick to see a record which has some associations. 
+* Next to has_many association a count of number of associated records is shown.
+* All the associated records are links so you can navigate from record to record.
+
+h4. Miscellaneous features
+
+* +admin_data+ supports namespaced models like +Vehicle::Car+ .
+* Plugin does not assume that all the tables have primary key as +id+. It respects the primary_key set in the model.
+* RSS feed for all the models.
 
 h3. Installing 
 
@@ -74,7 +92,7 @@ AdminData::Config.set = {
 
 h4. local jquery file instead of google hosted version
 
-+admin_data+ uses jQuery . Don't worry using +admin_data+ will have no impact on rest of your application if you are using some other JavaScript library. +admin_data+ used google hosted version to load jQuery files. However if you do not have internet connection if you don't want to use google version then you can use the local jQuery files supplied with plugin.
++admin_data+ uses jQuery . Don't worry using +admin_data+ will have no impact on rest of your application if you are using some other JavaScript library. By default +admin_data+ uses google hosted version to load jQuery files. However if you do not have internet connection or if you don't want to use google version then you can use the local jQuery files supplied with the plugin.
 
 <ruby>
 AdminData::Config.set = {
@@ -104,19 +122,21 @@ class City < ActiveRecord::Base
 end
 </ruby>
 
-This plugin will generate show method for city like this +/admin_data/city/miami+ . The controller will execute the query assuming that id is +miami+ and the record will not be found.
+For +show+ action +admin_data+ will generate url which could look like +/admin_data/city/miami+ . The controller will execute the query assuming that id is +miami+ and the record will NOT be found.
 
 Here is how that can be fixed.
 
 <ruby>
 AdminData::Config.set = {
- :find_conditions => {'City' => lambda {|params| {:conditions => ["permanent_name = ?", params[:id]]}}}  
+ :find_conditions => 
+         {'City' => lambda {|params| {:conditions => 
+                                        ["permanent_name = ?", params[:id]]}}}  
 }
 </ruby>
 
 h4. Override the default behaviour of column
 
-I have a model like this
+I have a +Car+ model.
 
 <ruby>
 class Car < ActiveRecord::Base
@@ -124,19 +144,19 @@ class Car < ActiveRecord::Base
 end
 </ruby>
 
-I am going to create a record and set a value to data.
+I am going to create a record and set value to data.
 
 <ruby>
-Car.create(:color => ‘black’, :year => ‘2000’)
+Car.create(:data => { :color => ‘black’, :year => ‘2000’})
 </ruby>
 
-If you look at this record using admin_data then for the column ‘data’ you will see value like this.
+If you look at this record using admin_data then for the column ‘data’ will have following value:
 
 <ruby>
 colorblackyear2000
 </ruby>
 
-This is not very useful. However I know that I am getting that value because that is output of to_s operation on a hash. If I could ask plugin to perform to_inspect method on a hash then output will be much more easy to read. Given below is how I can ask plugin to perform inspect method on data column.
+This is not very useful. If I could ask plugin to perform +to_inspect+ on hash then output will be much more easy to read. Given below is how I can ask plugin to perform inspect method on data column.
 
 <ruby>
 AdminData::Config.set = ({
@@ -144,7 +164,7 @@ AdminData::Config.set = ({
 })
 </ruby>
 
-The plugin passes the whole model record to the proc and the users can customize the value for that model as per their taste.
++admin_data+  passes the model instanct to proc and the user can customize the value for that model as per his/her taste.
 
 Based on this setting the new output would be much more readable.
 
@@ -152,7 +172,7 @@ h4. Replace drop down associations with input text
 
 Let's say that I have two tables: users table and phone_numbers. If I edit a phone number then I would be presented with the drop down of all the user ids. If I have 50K user records then page will be slow .
 
-To get around to this type of problem you can configure admin_data such that in stead of drop down select field , you will get input text field. This is how you can configre
+To get around this problem you can configure +admin_data+ so that instead of +select field+ you are given +input text+.
 
 <ruby>
 AdminData::Config.set = ({
@@ -162,7 +182,7 @@ AdminData::Config.set = ({
 
 h4. RSS feed for all models
 
-This plugin provides RSS feed for all models. RSS feed can only be consumed if you are properly authenticated. This plugin uses http basic authentication mechanism to authenticate requests for RSS feed. Given below is how you can provider userid and password against to check for authentcation.
++admin_data+ provides RSS feed for all models. RSS feed can only be consumed if you are properly authenticated. +admin_data+ uses http basic authentication mechanism to authenticate requests for RSS feed. Given below is how you can provider userid and password against to check for authentcation.
 
 <ruby>
 AdminData::Config.set = {
@@ -175,15 +195,48 @@ The url to access RSS feed for model +user+ would be +http://localhost:3000/admi
 
 h4. Custom order of columns in listing
 
-This plugin allows you to customize order of columns in a listing. I have an Article model which ,by default, lists columns in following order: id, body, title, author_name, published_at .
+I have an Article model which ,by default, lists columns in following order: id, body, title, author_name, published_at .
 
-If I want order of columns to be changed then I need to pass only following configuration option.
+If I want order of columns to be changed then I need configure that.
 
 <ruby>
 AdminData::Config.set = {
   :columns_order => {'Article' => [:id, :title, :body, :published_at, :author_name]}  
 }
 </ruby>
+
+h3. Security Configurations
+
+Default security configuration is to allow both view and update access in development mode and restrict both view and update access in any other environment. The default security configuration looks like this
+
+<ruby>
+AdminData::Config.set = {
+  :is_allowed_to_view => lambda {|controller| return true if Rails.env.development? },
+  :is_allowed_to_update => lambda {|controller| return true if Rails.env.development? },
+}
+</ruby>
+
+This is how I configure security settings for non development environments.
+
+<ruby>
+AdminData::Config.set = {
+  :is_allowed_to_view => lambda {|controller| controller.send('logged_in?') },
+  :is_allowed_to_update => lambda {|controller| controller.send('admin_logged_in?') },
+}
+</ruby>
+
+In the above case application_controller.rb must have method +logged_in?+ and +admin_logged_in?+ .
+
+As you can see +controller+ is provided as argument to proc so you can invoke any method on controller to decide if the user should have access or not.
+
+You can also define security at a model level. Just use @model in the proc and model instance would be made available as @model .
+
+<pre>
+AdminData::Config.set = {
+  :is_allowed_to_view_model => lambda {|controller| controller.send('logged_in?')  && @model.author_name == 'john' },
+  :is_allowed_to_update => lambda {|controller| controller.send('admin_logged_in?') && @model.author_name == 'john' },
+}
+</pre>
 
 
 h3. How to run test for this plugin
